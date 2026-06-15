@@ -1,0 +1,82 @@
+# Master configuration for RIFD (Read Info From Documents) project
+
+project:
+  name: "rifd"
+  version: "0.1.0"
+
+
+# Data & paths
+data:
+  root: "data/"                          # base directory for all datasets
+  datasets:
+    pretraining:
+      name: "vadimkurochkin/wikitext-103"               # Kagglehub identifier
+      local_dir: "wikitext-103"          # subfolder under data.root
+      # Token limits for chunking
+      max_length: 512
+      stride: 256
+      mlm_prob: 0.15
+      max_articles: null                 # set to integer for fast prototyping, null = all
+      train_split: 0.9                   # fraction for training (rest for validation)
+    finetuning:
+      name: "aravindram11/funsdform-understanding-noisy-scanned-documents"
+      local_dir: "funsd"
+      max_length: 512
+      split: "train"                     # also "test" for evaluation
+
+# Tokenizer
+
+tokenizer:
+  pretrained_name: "bert-base-uncased"   # we use HuggingFace tokenizer only
+  max_length: 512                        # default max sequence length
+
+
+# Model architecture
+
+model:
+  d_model: 256
+  num_heads: 4 #keep small for cpu
+  num_layers: 4 #keep small for cpu
+  d_ff: 1024
+  max_len: 512
+  dropout: 0.1
+
+# Pre-training (MLM)
+
+pretraining:
+  batch_size: 2 #keep small for cpu
+  epochs: 5
+  learning_rate: 5e-5
+  weight_decay: 0.01
+  val_split: 0.1
+  val_subset_fraction: 0.5
+  grad_clip: 1.0
+  save_path: "checkpoints/best-dpt-model.pth"
+  log_dir: "runs/pretrain"
+
+
+# Fine-tuning (NER on FUNSD)
+finetuning:
+  batch_size: 2
+  epochs: 5
+  learning_rate: 5e-5
+  weight_decay: 0.01
+  grad_clip: 1.0
+  save_path: "checkpoints/best-ner-model.pth"
+  log_dir: "runs/finetune"
+
+# Logging & experiment tracking
+
+logging:
+  tensorboard:
+    log_dir: "runs"
+  mlflow:
+    tracking_uri: "sqlite:///mlflow.db"
+    experiment_name: "rifd"
+
+
+# Inference
+
+inference:
+  model_path: "checkpoints/best-ner-model.pth"
+  device: "cpu"  # "cuda" or "cpu"

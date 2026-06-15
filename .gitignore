@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Ignore all data folders
+data/
+
+# Ignore all model weights
+*.pth
+*.pt
+*.ckpt
